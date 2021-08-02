@@ -10,7 +10,6 @@
       <div class="head">
 
         <selectList :options="optionList" />
-
         <input class="link" placeholder="Path" v-model="selectedListItem.url" />
 
         <button class="sendButton">Send</button>
@@ -28,6 +27,7 @@
           <content-item v-for="(listItem, idx) in parsedListItems"
                         :key="idx"
                         :item="listItem"
+                        @updatedInput="contentItemUpdate"
           />
         </div>
 
@@ -86,27 +86,59 @@ export default {
         url: 'http://huinia:9087/country/{countryName}/user/{id}?name=&*age=&phone=&*email='
       }
     ])
-
     const selectedListItem = ref(functionList.value[0])
-
     const parsedListItems = ref([])
 
-    const parsePath = (url) => {
-      return url?.split('/').filter(item => item.match(/\{([^\}]*)\}/))
-    }
-    const parseQueryParams = (url) => {
-      return url?.split('?')[1].split('&')
+    const processStringToObject = (arr) => {
+      return arr.map(item => ({ title: item.replace(/[^a-zа-яё]/gi, ''), checked: true, modelValue: '' }))
     }
 
+    const parsePath = (url) => {
+      const path = []
+      url?.split('/').forEach(item => {
+        if (item[0] === '{') {
+          path.push(item?.match(/\{([^}]+)\}/)[0])
+        }
+      })
+      return path
+    }
+
+    const parseQueryParams = (url) => {
+      if (url.split('?')[1]) return url.split('?')[1].split('&')
+    }
+
+    const contentItemUpdate = item => {
+      if (item.checked) {
+        findCorrespondingItem(item)
+      }
+    }
+
+    const findCorrespondingItem = (item) => {
+      const mainURL = selectedListItem.value.url
+      if (mainURL.indexOf(item.title) !== -1) {
+        const leftSide = mainURL.substring(0, mainURL.indexOf(item.title) - 1)
+        const rightSide = mainURL.substring(mainURL.indexOf(item.title) + item.title.length + 1)
+        selectedListItem.value.url = leftSide.concat(item.modelValue).concat(rightSide)
+      } else {
+
+        // TODO needs to be updated with some logic
+
+      }
+    }
 
     const parseListItems = (item) => {
       selectedListItem.value = item
-
       if (selectedListItem.value.url.trim() !== '') {
-        const pathParams = parsePath(selectedListItem.value.url)
-        const queryParams = parseQueryParams(selectedListItem.value.url)
+        const pathParams = parsePath(selectedListItem.value.url) || []
+        const queryParams = parseQueryParams(selectedListItem.value.url) || []
 
-        parsedListItems.value =  [...pathParams, ...queryParams]
+        if (pathParams.length && queryParams.length) {
+          parsedListItems.value = processStringToObject([...pathParams, ...queryParams])
+          return {
+            pathParams: [...pathParams],
+            queryParams: [...queryParams]
+          }
+        }
       }
     }
 
@@ -119,7 +151,8 @@ export default {
       functionList,
       selectedListItem,
       parseListItems,
-      parsedListItems
+      parsedListItems,
+      contentItemUpdate,
     }
   }
 }

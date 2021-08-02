@@ -1,8 +1,8 @@
 <template>
   <div class="content-item">
-    <input type="checkbox" :id="item">
-    <label :for="item">{{ item }}</label>
-    <input type="text"/>
+    <input type="checkbox" :id="item.title" @click="item.checked = !item.checked" :checked="item.checked">
+    <label :for="item.title">{{ item.title }}</label>
+    <input type="text" v-model="item.modelValue" @input="item.checked ? $emit('updatedInput', item) : item.modelValue = ''"/>
   </div>
 </template>
 
@@ -12,7 +12,7 @@ export default {
   props: {
     item: {
       required: true,
-      type: String
+      type: Object
     }
   }
 }
