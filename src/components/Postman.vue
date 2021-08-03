@@ -24,7 +24,7 @@
         </div>
 
         <div class="content">
-          <content-item v-for="(listItem, idx) in parsedListItems"
+          <content-item v-for="(listItem, idx) in parsedListParams"
                         :key="idx"
                         :item="listItem"
                         @updatedInput="updateUrl"
@@ -90,9 +90,22 @@ export default {
       }
     ])
     const selectedListItem = ref(functionList.value[0])
-    const parsedListItems = ref([])
+    const parsedListParams = ref([])
+
+
+
 
     /* Methods */
+
+    const cloneObjects = obj => {
+      const clone = {}
+      for (let key in obj) {
+        if (typeof clone[key] !== 'object') clone[key] = obj[key]
+      }
+      return clone
+    }
+
+    const clonedValue = ref(cloneObjects(functionList.value[0]))
 
     const clearStrFromSymbols = strArr => strArr.map(item => item.replace(/[^a-zа-яё]/gi, ''))
 
@@ -111,24 +124,35 @@ export default {
       if (url.split('?')[1]) return clearStrFromSymbols(url.split('?')[1].split('&'))
     }
 
+
     const updateUrl = item => {
-      const mainUrl = selectedListItem.value
+      const rightSidePosition = clonedValue.value.url.indexOf(item.title) + item.title.length + 1
+      const leftSidePosition = clonedValue.value.url.indexOf(item.title) - 1
+
+      const rightSide = clonedValue.value.url.substring(rightSidePosition)
+      const leftSide = clonedValue.value.url.substring(0, leftSidePosition)
+
+      selectedListItem.value.url = leftSide.concat(item.modelValue).concat(rightSide)
+
     }
 
     const parseListItems = (item) => {
       selectedListItem.value = item
+
+      clonedValue.value = cloneObjects(item)
+
       if (selectedListItem.value.url.trim() !== '') {
-        const pathParams = parsePathParams(selectedListItem.value.url) || []
-        const queryParams = parseQueryParams(selectedListItem.value.url) || []
 
+        const pathParams = parsePathParams(selectedListItem.value.url)
+        const queryParams = parseQueryParams(selectedListItem.value.url)
 
-        if (pathParams.length && queryParams.length) {
-          parsedListItems.value = [...pathParams, ...queryParams].map(item => ({
-            title: item,
-            modelValue: '',
-            checked: true
-          }))
-        }
+        const parsedParams = [...pathParams  || [], ...queryParams  || []]
+
+        parsedListParams.value = parsedParams.map(item => ({
+          title: item,
+          modelValue: '',
+          checked: true
+        }))
       }
     }
 
@@ -141,7 +165,7 @@ export default {
       functionList,
       selectedListItem,
       parseListItems,
-      parsedListItems,
+      parsedListParams,
       updateUrl,
     }
   }
