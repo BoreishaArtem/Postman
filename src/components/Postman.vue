@@ -27,7 +27,7 @@
           <content-item v-for="(listItem, idx) in parsedListItems"
                         :key="idx"
                         :item="listItem"
-                        @updatedInput="contentItemUpdate"
+                        @updatedInput="updateUrl"
           />
         </div>
 
@@ -54,6 +54,9 @@ export default {
     contentItem,
   },
   setup() {
+
+    /* Data */
+
     const optionList = ref([
       { title: 'GET', value: 'GET' },
       { title: 'PUT', value: 'PUT' },
@@ -89,55 +92,42 @@ export default {
     const selectedListItem = ref(functionList.value[0])
     const parsedListItems = ref([])
 
-    const processStringToObject = (arr) => {
-      return arr.map(item => ({ title: item.replace(/[^a-zа-яё]/gi, ''), checked: true, modelValue: '' }))
-    }
+    /* Methods */
 
-    const parsePath = (url) => {
+    const clearStrFromSymbols = strArr => strArr.map(item => item.replace(/[^a-zа-яё]/gi, ''))
+
+    const parsePathParams = (url) => {
       const path = []
       url?.split('/').forEach(item => {
         if (item[0] === '{') {
-          path.push(item?.match(/\{([^}]+)\}/)[0])
+          const newPathItem = item?.match(/\{([^}]+)\}/)[0]
+          path.push(newPathItem)
         }
       })
-      return path
+      return clearStrFromSymbols(path)
     }
 
     const parseQueryParams = (url) => {
-      if (url.split('?')[1]) return url.split('?')[1].split('&')
+      if (url.split('?')[1]) return clearStrFromSymbols(url.split('?')[1].split('&'))
     }
 
-    const contentItemUpdate = item => {
-      if (item.checked) {
-        findCorrespondingItem(item)
-      }
-    }
-
-    const findCorrespondingItem = (item) => {
-      const mainURL = selectedListItem.value.url
-      if (mainURL.indexOf(item.title) !== -1) {
-        const leftSide = mainURL.substring(0, mainURL.indexOf(item.title) - 1)
-        const rightSide = mainURL.substring(mainURL.indexOf(item.title) + item.title.length + 1)
-        selectedListItem.value.url = leftSide.concat(item.modelValue).concat(rightSide)
-      } else {
-
-        // TODO needs to be updated with some logic
-
-      }
+    const updateUrl = item => {
+      const mainUrl = selectedListItem.value
     }
 
     const parseListItems = (item) => {
       selectedListItem.value = item
       if (selectedListItem.value.url.trim() !== '') {
-        const pathParams = parsePath(selectedListItem.value.url) || []
+        const pathParams = parsePathParams(selectedListItem.value.url) || []
         const queryParams = parseQueryParams(selectedListItem.value.url) || []
 
+
         if (pathParams.length && queryParams.length) {
-          parsedListItems.value = processStringToObject([...pathParams, ...queryParams])
-          return {
-            pathParams: [...pathParams],
-            queryParams: [...queryParams]
-          }
+          parsedListItems.value = [...pathParams, ...queryParams].map(item => ({
+            title: item,
+            modelValue: '',
+            checked: true
+          }))
         }
       }
     }
@@ -152,7 +142,7 @@ export default {
       selectedListItem,
       parseListItems,
       parsedListItems,
-      contentItemUpdate,
+      updateUrl,
     }
   }
 }

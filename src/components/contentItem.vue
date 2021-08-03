@@ -14,7 +14,7 @@ export default {
       required: true,
       type: Object
     }
-  }
+  },
 }
 </script>
 
