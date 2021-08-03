@@ -1,7 +1,7 @@
 <template>
   <div class="content-item">
     <input type="checkbox" :id="item.title" @click="item.checked = !item.checked" :checked="item.checked">
-    <label :for="item.title">{{ item.title }}</label>
+    <label :for="item.title">{{ clearStrFromSymbols(item.title) }}</label>
     <input type="text" v-model="item.modelValue" @input="item.checked ? $emit('updatedInput', item) : item.modelValue = ''"/>
   </div>
 </template>
@@ -15,6 +15,12 @@ export default {
       type: Object
     }
   },
+  setup() {
+    const clearStrFromSymbols = str => str.replace(/[^a-zа-яё]/gi, '')
+    return {
+      clearStrFromSymbols
+    }
+  }
 }
 </script>
 

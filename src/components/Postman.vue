@@ -1,6 +1,7 @@
 <template>
   <div class="container">
 
+
     <functionList class="left-side"
                   @selectListItem="parseListItems($event)"
                   :list="functionList" />
@@ -10,6 +11,8 @@
       <div class="head">
 
         <selectList :options="optionList" />
+
+
         <input class="link" placeholder="Path" v-model="selectedListItem.url" />
 
         <button class="sendButton">Send</button>
@@ -39,7 +42,7 @@
 import {
   ref,
   onBeforeMount,
-  // computed
+  watch
 } from 'vue';
 
 import selectList from "./selectList";
@@ -92,8 +95,7 @@ export default {
     const selectedListItem = ref(functionList.value[0])
     const parsedListParams = ref([])
 
-
-
+    const currentStringItemsObject = ref({})
 
     /* Methods */
 
@@ -107,8 +109,6 @@ export default {
 
     const clonedValue = ref(cloneObjects(functionList.value[0]))
 
-    const clearStrFromSymbols = strArr => strArr.map(item => item.replace(/[^a-zа-яё]/gi, ''))
-
     const parsePathParams = (url) => {
       const path = []
       url?.split('/').forEach(item => {
@@ -117,23 +117,19 @@ export default {
           path.push(newPathItem)
         }
       })
-      return clearStrFromSymbols(path)
+      return path
     }
 
     const parseQueryParams = (url) => {
-      if (url.split('?')[1]) return clearStrFromSymbols(url.split('?')[1].split('&'))
+      if (url.split('?')[1]) return url.split('?')[1].split('&')
     }
-
-
     const updateUrl = item => {
-      const rightSidePosition = clonedValue.value.url.indexOf(item.title) + item.title.length + 1
-      const leftSidePosition = clonedValue.value.url.indexOf(item.title) - 1
+      const cloneFromClone = cloneObjects(clonedValue.value)
+      currentStringItemsObject.value[item.title] = item.modelValue
 
-      const rightSide = clonedValue.value.url.substring(rightSidePosition)
-      const leftSide = clonedValue.value.url.substring(0, leftSidePosition)
-
-      selectedListItem.value.url = leftSide.concat(item.modelValue).concat(rightSide)
-
+      for(let key in currentStringItemsObject.value) {
+        selectedListItem.value.url = cloneFromClone.url.replace(key, currentStringItemsObject.value[key])
+      }
     }
 
     const parseListItems = (item) => {
@@ -166,6 +162,7 @@ export default {
       selectedListItem,
       parseListItems,
       parsedListParams,
+      currentStringItemsObject,
       updateUrl,
     }
   }
