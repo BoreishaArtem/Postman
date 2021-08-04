@@ -16,7 +16,7 @@ export default {
     }
   },
   setup() {
-    const clearStrFromSymbols = str => str.replace(/[^a-zа-яё]/gi, '')
+    const clearStrFromSymbols = str => str.replace(/[^a-zа-яё*]/gi, '')
     return {
       clearStrFromSymbols
     }

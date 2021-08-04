@@ -13,7 +13,7 @@
         <selectList :options="optionList" />
 
 
-        <input class="link" placeholder="Path" v-model="selectedListItem.url" />
+        <input class="link" placeholder="Path" v-model="selectedListItem.url" @input="changeParamsHandler" />
 
         <button class="sendButton">Send</button>
 
@@ -96,6 +96,8 @@ export default {
     const parsedListParams = ref([])
     const currentStringItemsObject = ref({})
 
+    const LOCALE_STRING = ref('')
+
 
     /* Methods */
 
@@ -107,7 +109,6 @@ export default {
       return clone
     }
 
-    const clonedValue = ref(cloneObjects(functionList.value[0]))
 
     const parsePathParams = (url) => {
       const path = []
@@ -126,28 +127,26 @@ export default {
 
     const updateUrl = item => {
       currentStringItemsObject.value[item.title] = item.modelValue
+
+      let clonedValue = LOCALE_STRING.value
+
       const selectedURL = selectedListItem.value
-      const clonedURL = clonedValue.value
 
-
-      const itemIndex = selectedURL.url.indexOf(item.title)
-
-      if (itemIndex !== -1) {
-        selectedURL.url = selectedURL.url.replace(item.title, item.modelValue)
-      } else {
-        const index = clonedURL.url.indexOf(item.title) - 1
-        const splittedURLLeft = selectedURL.url.slice(index, index + item.modelValue.length)
-        const splittedURLRight = selectedURL.url.slice(index + item.modelValue.length, selectedURL.url.length)
-
-        selectedURL.url = splittedURLLeft.concat(item.modelValue).concat(splittedURLRight)
-
+      for (let key in currentStringItemsObject.value) {
+        clonedValue = clonedValue.replace(key, currentStringItemsObject.value[key])
       }
+
+      selectedURL.url = clonedValue
+    }
+
+    const changeParamsHandler = (val) => {
+      console.log(selectedListItem.value.url)
     }
 
     const parseListItems = (item) => {
       selectedListItem.value = item
 
-      clonedValue.value = cloneObjects(item)
+      LOCALE_STRING.value = item.url
 
       if (selectedListItem.value.url.trim() !== '') {
 
@@ -172,9 +171,10 @@ export default {
       optionList,
       functionList,
       selectedListItem,
-      parseListItems,
       parsedListParams,
+      parseListItems,
       updateUrl,
+      changeParamsHandler
     }
   }
 }
