@@ -94,8 +94,8 @@ export default {
     ])
     const selectedListItem = ref(functionList.value[0])
     const parsedListParams = ref([])
-
     const currentStringItemsObject = ref({})
+
 
     /* Methods */
 
@@ -123,12 +123,24 @@ export default {
     const parseQueryParams = (url) => {
       if (url.split('?')[1]) return url.split('?')[1].split('&')
     }
-    const updateUrl = item => {
-      const cloneFromClone = cloneObjects(clonedValue.value)
-      currentStringItemsObject.value[item.title] = item.modelValue
 
-      for(let key in currentStringItemsObject.value) {
-        selectedListItem.value.url = cloneFromClone.url.replace(key, currentStringItemsObject.value[key])
+    const updateUrl = item => {
+      currentStringItemsObject.value[item.title] = item.modelValue
+      const selectedURL = selectedListItem.value
+      const clonedURL = clonedValue.value
+
+
+      const itemIndex = selectedURL.url.indexOf(item.title)
+
+      if (itemIndex !== -1) {
+        selectedURL.url = selectedURL.url.replace(item.title, item.modelValue)
+      } else {
+        const index = clonedURL.url.indexOf(item.title) - 1
+        const splittedURLLeft = selectedURL.url.slice(index, index + item.modelValue.length)
+        const splittedURLRight = selectedURL.url.slice(index + item.modelValue.length, selectedURL.url.length)
+
+        selectedURL.url = splittedURLLeft.concat(item.modelValue).concat(splittedURLRight)
+
       }
     }
 
@@ -162,7 +174,6 @@ export default {
       selectedListItem,
       parseListItems,
       parsedListParams,
-      currentStringItemsObject,
       updateUrl,
     }
   }
