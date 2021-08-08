@@ -25,6 +25,7 @@
           <span class="value">Value</span>
 
         </div>
+        <!--                        -->
 
         <div class="content">
           <content-item v-for="(listItem, idx) in parsedListParams"
@@ -98,7 +99,6 @@ export default {
 
     const LOCALE_STRING = ref('')
 
-
     /* Methods */
 
     const cloneObjects = obj => {
@@ -139,8 +139,36 @@ export default {
       selectedURL.url = clonedValue
     }
 
+    const currentMutableValue = ref(null)
+
     const changeParamsHandler = (val) => {
-      console.log(selectedListItem.value.url)
+      const selectedURL = selectedListItem.value
+      const deletedItems = findDeletedElements(selectedURL.url, parsedListParams.value)
+
+      findCurrentMutableValue(deletedItems)
+
+      const paramsItem = parsedListParams.value.find(item => item.title === currentMutableValue.value).parameters
+
+      if (val.data && currentMutableValue.value) {
+        paramsItem.push(val.data)
+      } else {
+        paramsItem.pop(val.data)
+      }
+    }
+
+    const findCurrentMutableValue = deletedItemsArray => {
+      deletedItemsArray.forEach(item => {
+        !currentMutableValue.value ? currentMutableValue.value = item :
+            currentMutableValue.value = currentMutableValue.value === item ?  currentMutableValue.value : item
+      })
+    }
+
+    const findDeletedElements = (url, array) => {
+      const deletedArr = []
+      array.forEach(item => {
+        if (!url.includes(item.title)) deletedArr.push(item.title)
+      })
+      return deletedArr
     }
 
     const parseListItems = (item) => {
@@ -155,11 +183,14 @@ export default {
 
         const parsedParams = [...pathParams  || [], ...queryParams  || []]
 
-        parsedListParams.value = parsedParams.map(item => ({
-          title: item,
-          modelValue: '',
-          checked: true
-        }))
+        parsedListParams.value = parsedParams.map(item => {
+          return {
+            title: item,
+            modelValue: '',
+            parameters: [],
+            checked: true
+          }
+        })
       }
     }
 

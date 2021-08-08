@@ -7,16 +7,23 @@
 </template>
 
 <script>
+import { watch } from 'vue'
+
 export default {
   name: "contentItem",
   props: {
     item: {
       required: true,
       type: Object
-    }
+    },
   },
-  setup() {
+  setup(props) {
     const clearStrFromSymbols = str => str.replace(/[^a-zа-яё*]/gi, '')
+
+    watch(props.item.parameters, (val) => {
+      props.item.modelValue = val.join('')
+    })
+
     return {
       clearStrFromSymbols
     }
