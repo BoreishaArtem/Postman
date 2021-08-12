@@ -1,13 +1,15 @@
 <template>
   <div class="content-item">
-    <input type="checkbox" :id="item.title" @click="item.checked = !item.checked" :checked="item.checked">
+    <input type="checkbox" :id="item.title" @click="changeCheckedStatus(item)" :checked="item.checked">
     <label :for="item.title">{{ clearStrFromSymbols(item.title) }}</label>
-    <input type="text" v-model="item.modelValue" @input="item.checked ? $emit('updatedInput', item) : item.modelValue = ''"/>
+    <input type="text" v-model="item.modelValue" :disabled="!item.checked" @input="inputEvent(item)"/>
   </div>
 </template>
 
 <script>
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
+import cloneObject from '../actions/cloneObject'
+
 
 export default {
   name: "contentItem",
@@ -17,15 +19,36 @@ export default {
       type: Object
     },
   },
-  setup(props) {
+  setup(props, { emit }) {
     const clearStrFromSymbols = str => str.replace(/[^a-zа-яё*]/gi, '')
+    const copiedObject = ref(null)
 
     watch(props.item.parameters, (val) => {
       props.item.modelValue = val.join('')
     })
 
+    const changeCheckedStatus = item => {
+      item.checked = !item.checked
+      if (!item.checked) {
+          item.modelValue = ''
+          emit('updatedInput', item)
+      } else {
+        if (copiedObject.value) {
+          item.modelValue = copiedObject.value.modelValue
+          emit('updatedInput', copiedObject.value)
+        }
+      }
+    }
+
+    const inputEvent = item => {
+      emit('updatedInput', item)
+      copiedObject.value = cloneObject(item)
+    }
+
     return {
-      clearStrFromSymbols
+      clearStrFromSymbols,
+      changeCheckedStatus,
+      inputEvent
     }
   }
 }

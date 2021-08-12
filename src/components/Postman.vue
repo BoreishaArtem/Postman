@@ -101,15 +101,6 @@ export default {
 
     /* Methods */
 
-    const cloneObjects = obj => {
-      const clone = {}
-      for (let key in obj) {
-        if (typeof clone[key] !== 'object') clone[key] = obj[key]
-      }
-      return clone
-    }
-
-
     const parsePathParams = (url) => {
       const path = []
       url?.split('/').forEach(item => {
@@ -132,9 +123,18 @@ export default {
 
       const selectedURL = selectedListItem.value
 
-      for (let key in currentStringItemsObject.value) {
-        clonedValue = clonedValue.replace(key, currentStringItemsObject.value[key])
-      }
+        for (let key in currentStringItemsObject.value) {
+          if (item.modelValue.trim() !== '') {
+            const currentValue = currentStringItemsObject.value[key]
+
+            clonedValue = clonedValue.replace(key, currentValue.trim() !== ''
+                ? currentValue
+                : key)
+
+          } else {
+            clonedValue = clonedValue.replace(key, key)
+          }
+        }
 
       selectedURL.url = clonedValue
     }
